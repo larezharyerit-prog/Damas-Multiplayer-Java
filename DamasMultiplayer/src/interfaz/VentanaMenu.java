@@ -98,7 +98,7 @@ public class VentanaMenu extends javax.swing.JFrame {
         }
         System.out.println("Intentando conectar a la IP: " + ipEnemigo);
         VentanaJuego tablero = new VentanaJuego();
-        tablero.setVisible(true);
+//        tablero.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnUnirsePartidaActionPerformed
 

@@ -46,6 +46,8 @@ public class Tablero {
         } else {
             this.turnoActual = 1;
         }
+
+        System.out.println("turno de: " + this.turnoActual);
     }
 
     /*metodo para obtener el valor de una casilla:
@@ -70,9 +72,7 @@ public class Tablero {
      */
     public boolean casillaEsValida(int fila, int columna) {
         if (fila >= 0 && fila <= 7 && columna >= 0 && columna <= 7) {
-            if (obtenerCasilla(fila, columna) == 0) {
-                return true;
-            }
+            return (obtenerCasilla(fila, columna) == 0);
 
         }
         return false;
@@ -95,13 +95,15 @@ public class Tablero {
 
         if (ficha == 3 || ficha == 4) {
             direccionOk = true;
-        } else if (this.turnoActual == 1 && filaDest < filaOrig) {
+        } else if (ficha == 1 && filaDest < filaOrig) {
             direccionOk = true;
-        } else if (this.turnoActual == 2 && filaDest > filaOrig) {
+        } else if (ficha == 2 && filaDest > filaOrig) {
             direccionOk = true;
         }
 
-        return destinoOk && diagonalOk && direccionOk;
+        boolean distanciaOk = Math.abs(filaDest - filaOrig) == 1;
+
+        return destinoOk && diagonalOk && direccionOk && distanciaOk;
     }
 
     /*metodo que verifica si el jugador llego al extremo contrario
@@ -131,14 +133,17 @@ public class Tablero {
     public boolean moverFicha(int filaOrig, int columnaOrig, int filaDest, int columnaDest) {
         int fichaAMover = obtenerCasilla(filaOrig, columnaOrig);
 
-        if (validarMovimientos(filaOrig, columnaOrig, filaDest, columnaDest)) {
+        //pimero verifica si hay capturas disponibles
+        if (hayCapturaDisp(this.turnoActual)) {
 
-            //verifica primero si hay captura disponible, si la hay, bloquea el movimiento basico
-            if (hayCapturaDisp(this.turnoActual)) {
+            if (!validarCaptura(filaOrig, columnaOrig, filaDest, columnaDest)) {
+                System.out.println("DEBUG. Movimiento rechazado. Tienes una captura obligatoria en el Tablero!");
                 return false;
             }
+        }
 
-            //si el movimiento es basico
+        //si el movimiento es basico
+        if (validarMovimientos(filaOrig, columnaOrig, filaDest, columnaDest)) {
             setCasilla(filaOrig, columnaOrig, 0);
 
             setCasilla(filaDest, columnaDest, fichaAMover);
@@ -180,6 +185,10 @@ public class Tablero {
         = si es del jugador 1, el jugador 2 la captura
      */
     public boolean validarCaptura(int filaOrig, int columnaOrig, int filaDest, int columnaDest) {
+        if (filaDest < 0 || filaDest > 7 || columnaDest < 0 || columnaDest > 7) {
+            return false;
+        }
+
         if (!casillaEsValida(filaDest, columnaDest)) {
             return false;
         }
@@ -192,11 +201,22 @@ public class Tablero {
         int columnaMed = (columnaOrig + columnaDest) / 2;
         int fichaMed = obtenerCasilla(filaMed, columnaMed);
 
-        if (this.turnoActual == 1 && (fichaMed == 2 || fichaMed == 4)) {
-            return true;
+        int ficha = obtenerCasilla(filaOrig, columnaOrig);
+        if (ficha == 1 && filaDest > filaOrig) {
+            return false;
+        }
+        if (ficha == 2 && filaDest < filaOrig) {
+            return false;
         }
 
-        return this.turnoActual == 2 && (fichaMed == 1 || fichaMed == 3);
+        if (ficha == 1 || ficha == 3) {
+            return (fichaMed == 2 || fichaMed == 4);
+        }
+
+        if (ficha == 2 || ficha == 4) {
+            return (fichaMed == 1 || fichaMed == 3);
+        }
+        return false;
     }
 
     /*metodo que revisa si hay capturas disponibles desde la posicion
@@ -209,21 +229,28 @@ public class Tablero {
                 if ((jugador == 1 && (ficha == 1 || ficha == 3))
                         || (jugador == 2 && (ficha == 2 || ficha == 4))) {
 
-                    if (validarCaptura(f, c, f - 2, c - 2)
-                            || validarCaptura(f, c, f - 2, c + 2)
-                            || validarCaptura(f, c, f + 2, c - 2)
-                            || validarCaptura(f, c, f + 2, c + 2)) {
+                    if (validarCaptura(f, c, f - 2, c - 2)) {
                         return true;
                     }
+                    if (validarCaptura(f, c, f - 2, c + 2)) {
+                        return true;
+                    }
+                    if (validarCaptura(f, c, f + 2, c - 2)) {
+                        return true;
+                    }
+                    if (validarCaptura(f, c, f + 2, c + 2)) {
+                        return true;
+                    }
+
                 }
             }
-
         }
         return false;
     }
-    
-    //metodo para revisar si el jugador tiene movimientos disponibles
-    public boolean hayMovDisp(int jugador) {
+
+
+//metodo para revisar si el jugador tiene movimientos disponibles
+public boolean hayMovDisp(int jugador) {
         int[] df = {-1, -1, 1, 1};
         int[] dc = {-1, -1, 1, 1};
 

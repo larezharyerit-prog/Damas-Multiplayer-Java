@@ -119,9 +119,9 @@ public class VentanaJuego extends javax.swing.JFrame {
             
             // Restauramos el color original del botón de origen ( recalculando si era claro o oscuro)
             if ((filaOrigen + colOrigen) % 2 == 0) {
-                botones[filaOrigen][colOrigen].setBackground(new java.awt.Color(240, 217, 181));
+                botones[filaOrigen][colOrigen].setBackground(new java.awt.Color(135, 237, 205));
             } else {
-                botones[filaOrigen][colOrigen].setBackground(new java.awt.Color(181, 136, 99));
+                botones[filaOrigen][colOrigen].setBackground(new java.awt.Color(39, 71, 67));
             }
             
             // Mandamos los datos al motor lógico que programaste antes
