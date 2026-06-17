@@ -1,44 +1,90 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
 package interfaz;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridLayout;
 import javax.swing.JButton;
+import javax.swing.JPanel;
 
-public class PanelDeJuego extends javax.swing.JFrame {
-    private JButton [][];
-    private Damas damas;
-    private PanelImagen imagen;
-    private NuevaPartida sele;
-    private int tamanio = 60, tablero[][] = new int [0][0];
+public class PanelDeJuego extends JPanel {
+
+    private JButton[][] casillas = new JButton[8][8];
     
-    public void iniciar(){
-        imagen = new PanelImagen();
-        JButton[][] boton = new JButton[8][8];
-        damas = new Damas();
-        damas.poner_fichas();
-        removeAll();
-        
-        for(int i= 0; i < boton.length; i++){
-            for(int j = 0; j < boton[0].length; j++){
-                boton[i][j] = new JButton();
-                boton[i][j].setBackground(color.WHITE);
-                boton[i][j].setBorderPainted(false);
-                boton[i][j].setContentAreaFilled(false);
-                boton[i][j].setOpaque(false);
-                boton[i][j].addActionListener(this);
-                boton[i][j].SetIcon(new ImageIcon)
+    // Nueva: Matriz numerica para saber en donde carajo esta cada ficha
+    private int[][] matrizLogica = new int[8][8];
+
+    public PanelDeJuego() {
+        this.setLayout(new GridLayout(8, 8));
+        inicializarTablero();
+        ResetearTablero();         // 1. Coloca los numeros en la matriz logica
+        dibujar_en_los_botones(); // 2. Pinta las fichas en la pantalla basandose en esos numeros
+    }
+
+    private void inicializarTablero() {
+        for (int fila = 0; fila < 8; fila++) {
+            for (int col = 0; col < 8; col++) {
+                casillas[fila][col] = new JButton();
                 
+                if ((fila + col) % 2 == 0) {
+                    casillas[fila][col].setBackground(Color.WHITE);
+                } else {
+                    casillas[fila][col].setBackground(Color.DARK_GRAY);
+                }
                 
+                casillas[fila][col].setFocusable(false);
+                this.add(casillas[fila][col]);
             }
         }
-    
     }
-    
-    
 
-  
-    public PanelDeJuego() {
-        initComponents();
+    // Llenamos la matriz con las posiciones iniciales del juego
+    public void ResetearTablero() {
+        for (int fila = 0; fila < 8; fila++) {
+            for (int col = 0; col < 8; col++) {
+                matrizLogica[fila][col] = 0; // Por defecto todo vacio
+                
+                // Las damas solo van en las casillas oscuras (impares)
+                if ((fila + col) % 2 != 0) {
+                    if (fila < 3) {
+                        matrizLogica[fila][col] = 1; // Fichas del jugador de arriba (Negras)
+                    } else if (fila > 4) {
+                        matrizLogica[fila][col] = 2; // Fichas del jugador de abajo (Rojas)
+                    }
+                }
+            }
+        }
     }
+
+    // Lee la matriz numerica y dibuja los circulos ● correspondientes
+    public void dibujar_en_los_botones() {
+        for (int fila = 0; fila < 8; fila++) {
+            for (int col = 0; col < 8; col++) {
+                int estadoCasilla = matrizLogica[fila][col];
+                
+                if (estadoCasilla == 1) {
+                    casillas[fila][col].setText("●");
+                    casillas[fila][col].setForeground(Color.BLACK); // Ficha Negra
+                    casillas[fila][col].setFont(new Font("Arial", Font.BOLD, 35)); // Circulo grande
+                } else if (estadoCasilla == 2) {
+                    casillas[fila][col].setText("●");
+                    casillas[fila][col].setForeground(Color.RED);   // Ficha Roja
+                    casillas[fila][col].setFont(new Font("Arial", Font.BOLD, 35));
+                } else {
+                    casillas[fila][col].setText(""); // Si es 0, borra el texto (casilla vacia)
+                }
+            }
+        }
+    }
+
+
+    public void RecibirMovimientoParticipante(int fOrigen, int cOrigen, int fDestino, int cDestino) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -65,49 +111,8 @@ public class PanelDeJuego extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PanelDeJuego.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PanelDeJuego.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PanelDeJuego.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PanelDeJuego.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
         //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new PanelDeJuego().setVisible(true);
-            }
-        });
-    }
-
-    void ResetearTablero() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    void dibujar_en_los_botones() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+         
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
-}
