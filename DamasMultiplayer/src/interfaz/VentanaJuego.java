@@ -1,10 +1,15 @@
 package interfaz;
 
 import logicajuego.Tablero;
+import conexion.*;
 
 public class VentanaJuego extends javax.swing.JFrame {
 
     private final Tablero juego;
+    
+    private boolean modoRed = false;
+    private boolean miTurno = true;
+    private ConexionRed conexion;
 
     private final javax.swing.JButton[][] botones = new javax.swing.JButton[8][8];
 
@@ -89,7 +94,25 @@ public class VentanaJuego extends javax.swing.JFrame {
         this.setResizable(false);
         
         actualizarTableroGrafico();
-    } 
+    }
+    
+    public VentanaJuego(ConexionRed conexion, boolean miTurno) {
+        this();
+        this.conexion = conexion;
+        this.miTurno = miTurno;
+        this.modoRed = true; // Activamos la bandera de red
+        
+        // Configura visualmente si le toca mover a este jugador o esperar
+        // Deshabilitamos el botón de "Partida Nueva" si estamos en red para evitar que
+        // un jugador se salga a mitad de partida y deje el socket colgado
+        this.btnPartidaNueva.setEnabled(false); 
+
+        // Si necesitas inicializar o setear un texto de quién arranca:
+        if (!miTurno) {
+            // Ejemplo por si tienes un método para cambiar el texto del JLabel del turno
+            // lblTextoTurno.setText("Espera al rival..."); 
+        }
+    }
 
     private void generarTableroGrafico() {
         for (int f = 0; f < 8; f++) {
@@ -154,7 +177,7 @@ public class VentanaJuego extends javax.swing.JFrame {
                         break;
                 }
 
-                // ⚡ Lógica de turnos corregida con tu método real del backend
+                
                 if(juego != null && lblTurnoFicha != null){
                     int turno = juego.obtenerTurno(); 
                     
@@ -172,6 +195,10 @@ public class VentanaJuego extends javax.swing.JFrame {
     }
 
     private void gestionarClicTablero(int f, int c) {
+        if (modoRed && !miTurno) {
+            System.out.println("No es tu turno, espera al rival.");
+            return;
+        }
         if (primerClic) {
             int pieza = juego.obtenerCasilla(f, c);
 
@@ -181,6 +208,19 @@ public class VentanaJuego extends javax.swing.JFrame {
             }
             
             int turnoActual = juego.obtenerTurno();
+            
+            if (modoRed) {
+            // El Servidor maneja obligatoriamente el Turno 1 (Fichas 1 y 3)
+                if (conexion.isServidor() && (pieza == 2 || pieza == 4)) {
+                    System.out.println("Eres el Servidor (Fichas Negras). No puedes seleccionar las Turquesas.");
+                    return;
+                }
+                // El Cliente maneja obligatoriamente el Turno 2 (Fichas 2 y 4)
+                if (!conexion.isServidor() && (pieza == 1 || pieza == 3)) {
+                    System.out.println("Eres el Cliente (Fichas Turquesas). No puedes seleccionar las Negras.");
+                    return;
+                }
+            }
             
             if(turnoActual == 1){
                 if(pieza != 1 && pieza !=3){
@@ -213,7 +253,14 @@ public class VentanaJuego extends javax.swing.JFrame {
 
             if (movio) {
                 actualizarTableroGrafico();
+                
+                if (modoRed) {
+                    String datos = filaOrigen + "," + colOrigen + "-" + f + "," + c;
+                    conexion.enviarMovimiento(datos);
 
+                    // Cambiamos nuestro turno a falso localmente hasta que la red responda
+                    this.miTurno = false;
+                }
                 int ganador = juego.verificarGanador();
                 if (ganador != 0) {
                     javax.swing.JOptionPane.showMessageDialog(this, "¡El Jugador " + ganador + " ha ganado la partida!");
@@ -221,6 +268,40 @@ public class VentanaJuego extends javax.swing.JFrame {
             } else {
                 System.out.println("Movimiento inválido según las reglas del juego.");
             }
+        }
+    }
+    
+    public void recibirMovimientoRed(String mensaje) {
+        try {
+            // Descomponer el protocolo simple "filaOrig,colOrig-filaDest,colDest"
+            String[] partes = mensaje.split("-");
+            String[] orig = partes[0].split(",");
+            String[] dest = partes[1].split(",");
+
+            int fo = Integer.parseInt(orig[0]);
+            int co = Integer.parseInt(orig[1]);
+            int fd = Integer.parseInt(dest[0]);
+            int cd = Integer.parseInt(dest[1]);
+
+            // Aplicamos la jugada del rival directamente en tu lógica de Tablero
+            boolean movioRival = juego.moverFicha(fo, co, fd, cd);
+
+            if (movioRival) {
+                // Refrescamos la interfaz gráfica completa con tus iconos
+                actualizarTableroGrafico();
+
+                // Verificamos si la jugada del rival causó un fin de juego
+                int ganador = juego.verificarGanador();
+                if (ganador != 0) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "¡El Jugador " + ganador + " ha ganado la partida!");
+                    return;
+                }
+
+                // Habilitamos nuestro turno local otra vez
+                this.miTurno = true;
+            }
+        } catch (Exception e) {
+            System.err.println("Error procesando paquete de red oponente: " + e.getMessage());
         }
     }
 }

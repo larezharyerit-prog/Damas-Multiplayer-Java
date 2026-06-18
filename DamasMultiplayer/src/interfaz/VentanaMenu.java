@@ -9,6 +9,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Color;
 import static java.awt.Component.CENTER_ALIGNMENT;
 import java.io.InputStream;
+import conexion.ConexionRed;
 
 public class VentanaMenu extends javax.swing.JFrame {
 
@@ -122,30 +123,32 @@ public class VentanaMenu extends javax.swing.JFrame {
         btnHost.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Servidor Iniciado. Esperando jugador...");
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        iniciarServidor();
-                    }
-                }).start();
+                ConexionRed red;
+                //System.out.println("Servidor Iniciado. Esperando jugador...");
+                red = new ConexionRed(VentanaMenu.this);
+                
+                Thread hiloRed = new Thread(red);
+                hiloRed.start();
             }
         });
         btnJoin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String ipDestino = txtIP.getText().trim();
+                ConexionRed red;
+                String ip = txtIP.getText().trim();
                 
                 if(ip.isEmpty()){
-                    JOPtionPane.showMessageDIalog(VentanaMenu.this,
+                    JOPtionPanel.showMessageDIalog(VentanaMenu.this,
                             "Por favor, ingresa la IP del servidor.",
                             "IP Vacía", JOptionPane.WARNING_MESSAGE
                             );
                     return;
                 }
-                System.out.println("Conectando a" + ip + "...");
-                conectarAlServidor(ip);
+                //System.out.println("Conectando a " + ip + "...");
+                red = new ConexionRed(ip,VentanaMenu.this);
+                
+                Thread hiloRed = new Thread(red);
+                hiloRed.start();
             }
         });
     }
