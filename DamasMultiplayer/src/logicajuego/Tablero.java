@@ -312,5 +312,8 @@ public boolean hayMovDisp(int jugador) {
         }
         return 0;
     }
-
+    
+    public int obtenerTurno(){
+        return this.turnoActual;
+    }
 }
